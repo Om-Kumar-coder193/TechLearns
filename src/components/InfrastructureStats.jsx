@@ -223,7 +223,7 @@ export default function InfrastructureStats() {
   };
 
   return (
-    <section id="infrastructure" className="pt-12 pb-16 bg-white border-t border-slate-200 relative overflow-hidden">
+    <section id="infrastructure" className="pt-10 pb-12 sm:pt-12 sm:pb-16 bg-white border-t border-slate-200 relative overflow-x-hidden">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
 
@@ -233,23 +233,23 @@ export default function InfrastructureStats() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="max-w-4xl mx-auto mb-10"
+          className="max-w-4xl mx-auto mb-8 sm:mb-10"
         >
-          <h2 className="text-3xl sm:text-4xl lg:text-[40px] font-black text-[#0F1D38] uppercase tracking-tight leading-tight">
+          <h2 className="text-2xl min-[380px]:text-3xl sm:text-4xl lg:text-[40px] font-black text-[#0F1D38] uppercase tracking-tight leading-tight">
             BUILT BY INDUSTRY LEADERS TO SHAPE <br />
             <span className="text-[#8B5CF6]">FUTURE ENGINEERS</span>
           </h2>
-          <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-3">
+          <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-3 px-2">
             Explore the <strong className="text-[#8B5CF6] font-bold">8 pillars</strong> powering the Techlearns Corporate Experience Engine below:
           </p>
         </motion.div>
 
         {/* Interactive Circular Wheel Diagram + Dotted Connector */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center max-w-6xl mx-auto mb-16 relative">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center max-w-6xl mx-auto mb-12 sm:mb-16 relative">
 
           {/* Left / Main SVG Wheel (LG 6 Cols) */}
           <div
-            className="lg:col-span-6 relative flex items-center justify-center py-4 overflow-hidden sm:overflow-visible"
+            className="lg:col-span-6 relative flex items-center justify-center py-2 sm:py-4 overflow-hidden sm:overflow-visible touch-manipulation"
             onMouseEnter={() => setIsWheelHovered(true)}
             onMouseLeave={() => setIsWheelHovered(false)}
           >
@@ -298,8 +298,8 @@ export default function InfrastructureStats() {
               })}
             </div>
 
-            {/* SVG Interactive Wheel with Responsive Sizing */}
-            <div className="relative w-full max-w-[300px] sm:max-w-[420px] aspect-square mx-auto z-10">
+            {/* SVG Interactive Wheel with Responsive Sizing — fluid width with a small-phone-safe cap */}
+            <div className="relative w-[78vw] max-w-[260px] min-[400px]:max-w-[300px] sm:w-full sm:max-w-[420px] aspect-square mx-auto z-10">
               <motion.svg
                 viewBox="0 0 400 400"
                 className="w-full h-full transform -rotate-22.5"
@@ -357,13 +357,15 @@ export default function InfrastructureStats() {
                   const labelPos = polarToCartesian(200, 200, 140, midAngle);
 
                   return (
-                    <g
+                    <motion.g
                       key={slice.id}
                       role="button"
                       tabIndex={0}
                       aria-pressed={isSelected}
                       aria-label={`View ${slice.title} pillar details`}
                       className="cursor-pointer focus:outline-none"
+                      whileTap={{ scale: 0.96 }}
+                      style={{ transformOrigin: '200px 200px' }}
                       onFocus={() => setFocusedSlice(slice.id)}
                       onBlur={() => setFocusedSlice(null)}
                       onKeyDown={(e) => handleSliceKeyDown(e, slice.id)}
@@ -435,7 +437,7 @@ export default function InfrastructureStats() {
                           </text>
                         )}
                       </g>
-                    </g>
+                    </motion.g>
                   );
                 })}
               </motion.svg>
@@ -446,23 +448,23 @@ export default function InfrastructureStats() {
                   boxShadow: `0 0 0 4px ${current.color}22, 0 12px 30px -8px ${current.color}55`
                 }}
                 transition={{ duration: 0.4 }}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 sm:w-52 sm:h-52 rounded-full bg-white border-4 border-purple-100 flex flex-col items-center justify-center p-3 sm:p-4 text-center z-20"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30%] h-[30%] min-w-[92px] min-h-[92px] sm:w-52 sm:h-52 rounded-full bg-white border-4 border-purple-100 flex flex-col items-center justify-center p-2 sm:p-4 text-center z-20"
               >
                 <motion.div
                   animate={{ backgroundColor: current.color }}
                   transition={{ duration: 0.4 }}
-                  className="w-6 h-0.5 mb-1"
+                  className="w-5 sm:w-6 h-0.5 mb-1"
                 />
-                <span className="text-[9px] sm:text-[10px] font-extrabold text-[#8B5CF6] uppercase tracking-wider block">
+                <span className="text-[7px] sm:text-[10px] font-extrabold text-[#8B5CF6] uppercase tracking-wider block">
                   WHY
                 </span>
-                <h3 className="text-sm sm:text-lg font-black text-[#0F1D38] leading-tight">
+                <h3 className="text-[11px] sm:text-lg font-black text-[#0F1D38] leading-tight">
                   Techlearns
                 </h3>
-                <span className="text-[10px] sm:text-[11px] font-bold text-[#8B5CF6]">
+                <span className="text-[8px] sm:text-[11px] font-bold text-[#8B5CF6]">
                   CEL Engine?
                 </span>
-                <p className="text-[8px] sm:text-[9px] text-slate-500 font-semibold mt-1">
+                <p className="text-[6px] sm:text-[9px] text-slate-500 font-semibold mt-1 leading-tight">
                   For Future Engineers
                 </p>
               </motion.div>
@@ -522,7 +524,7 @@ export default function InfrastructureStats() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -15 }}
                 transition={{ duration: 0.3, ease: 'easeOut' }}
-                className="bg-white rounded-3xl p-5 sm:p-7 border-2 shadow-xl relative overflow-hidden"
+                className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 border-2 shadow-xl relative overflow-hidden"
                 style={{
                   borderColor: `${current.color}55`,
                   boxShadow: `0 20px 40px -20px ${current.color}55, 0 4px 12px rgba(15,29,56,0.08)`
@@ -629,27 +631,28 @@ export default function InfrastructureStats() {
               <img src={logo} alt="Techlearns Logo" className="h-8 w-auto object-contain" />
             </div>
 
-            <h2 className="text-2xl sm:text-4xl font-black text-[#0F1D38] tracking-tight uppercase">
+            <h2 className="text-xl min-[380px]:text-2xl sm:text-4xl font-black text-[#0F1D38] tracking-tight uppercase">
               THE POWERHOUSE BEHIND <span className="text-[#8B5CF6]">TECHLEARNS</span>
             </h2>
           </div>
 
           {/* 4x3 Grid of 12 Big Metric Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 max-w-6xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-5 max-w-6xl mx-auto">
             {gridStats.map((stat, idx) => (
               <motion.div
                 key={idx}
                 whileHover={{ scale: 1.03, y: -4 }}
+                whileTap={{ scale: 0.97 }}
                 transition={{ duration: 0.2 }}
-                className={`${stat.bg} text-white p-5 sm:p-8 rounded-2xl shadow-lg hover:shadow-2xl flex flex-col items-center justify-center text-center transition-shadow duration-300 cursor-default min-h-[130px] sm:min-h-[160px]`}
+                className={`${stat.bg} text-white p-4 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl flex flex-col items-center justify-center text-center transition-shadow duration-300 cursor-default min-h-[104px] sm:min-h-[160px]`}
               >
-                <h3 className="text-2xl sm:text-4xl font-black tracking-tight mb-1 sm:mb-2">
+                <h3 className="text-xl sm:text-4xl font-black tracking-tight mb-1 sm:mb-2">
                   {stat.value}
                 </h3>
-                <p className="text-xs sm:text-sm font-bold text-white/95 leading-snug">
+                <p className="text-[11px] sm:text-sm font-bold text-white/95 leading-snug">
                   {stat.label}
                 </p>
-                <span className="text-[9px] sm:text-[10px] text-[#8B5CF6] font-semibold mt-1">
+                <span className="text-[8px] sm:text-[10px] text-[#8B5CF6] font-semibold mt-1">
                   {stat.sublabel}
                 </span>
               </motion.div>
