@@ -135,17 +135,45 @@ function PipelineStepCard({ s, idx, onOpenModal }) {
 }
 
 export default function EngineeringPipeline({ onOpenModal }) {
+  /* ============================= */
+  /* CARD AREA CURSOR GLOW */
+  /* ============================= */
+
   const [cardMouse, setCardMouse] = useState({
     x: 50,
     y: 50,
   });
 
   const handleCardAreaMouseMove = (e) => {
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+
     const rect = e.currentTarget.getBoundingClientRect();
 
     setCardMouse({
       x: ((e.clientX - rect.left) / rect.width) * 100,
       y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  };
+
+  /* ============================= */
+  /* FEATURE BANNER CURSOR GLOW */
+  /* ============================= */
+
+  const [bannerMouse, setBannerMouse] = useState({
+    x: 50,
+    y: 50,
+  });
+
+  const [bannerHovered, setBannerHovered] = useState(false);
+
+  const handleBannerMouseMove = (e) => {
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+
+    setBannerMouse({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
     });
   };
 
@@ -156,7 +184,10 @@ export default function EngineeringPipeline({ onOpenModal }) {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
-        {/* Header */}
+        {/* ============================= */}
+        {/* HEADER */}
+        {/* ============================= */}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -166,6 +197,7 @@ export default function EngineeringPipeline({ onOpenModal }) {
         >
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100/90 border border-purple-200 text-[#612D92] text-xs font-mono font-bold tracking-widest uppercase mb-3 shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-[#8B5CF6]" />
+
             <span>YOUR ENGINEERING PIPELINE</span>
           </div>
 
@@ -183,21 +215,23 @@ export default function EngineeringPipeline({ onOpenModal }) {
         </motion.div>
 
         {/* ============================= */}
-        {/* CARD SECTION ONLY */}
+        {/* CARD SECTION */}
         {/* ============================= */}
 
         <div
           onMouseMove={handleCardAreaMouseMove}
           className="relative mb-12"
         >
-          {/* Cursor-following glow ONLY inside card area */}
+          {/* 800px cursor-following glow */}
           <div
-            className="absolute pointer-events-none rounded-full blur-[100px] transition-all duration-150 ease-out z-0"
+            className="absolute pointer-events-none rounded-full blur-[100px] z-0 transition-all duration-150 ease-out"
             style={{
               width: '800px',
               height: '800px',
+
               left: `${cardMouse.x}%`,
               top: `${cardMouse.y}%`,
+
               transform: 'translate(-50%, -50%)',
 
               background: `
@@ -228,19 +262,71 @@ export default function EngineeringPipeline({ onOpenModal }) {
           </div>
         </div>
 
-        {/* Feature Banner */}
+        {/* ============================= */}
+        {/* FEATURE BANNER */}
+        {/* ============================= */}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
+
+          onMouseMove={handleBannerMouseMove}
+          onMouseEnter={() => setBannerHovered(true)}
+          onMouseLeave={() => setBannerHovered(false)}
+
           className="max-w-5xl mx-auto rounded-3xl bg-gradient-to-r from-[#612D92] via-[#51237A] to-[#0F1D38] text-white p-6 sm:p-10 shadow-2xl shadow-purple-950/20 grid grid-cols-1 md:grid-cols-12 gap-8 items-center border border-white/15 relative overflow-hidden"
         >
-          <div className="absolute top-0 right-0 w-80 h-80 bg-purple-400/15 rounded-full blur-3xl pointer-events-none" />
+
+          {/* ========================================= */}
+          {/* 700PX CURSOR FOLLOWING BRIGHT SPOTLIGHT */}
+          {/* ========================================= */}
+
+          <div
+            className="absolute pointer-events-none z-[1]"
+            style={{
+              width: '700px',
+              height: '700px',
+
+              left: `${bannerMouse.x}px`,
+              top: `${bannerMouse.y}px`,
+
+              transform: 'translate(-50%, -50%)',
+
+              background: `
+                radial-gradient(
+                  circle,
+                  rgba(255, 255, 255, 0.24) 0%,
+                  rgba(216, 180, 254, 0.18) 18%,
+                  rgba(168, 85, 247, 0.12) 35%,
+                  rgba(139, 92, 246, 0.06) 52%,
+                  transparent 72%
+                )
+              `,
+
+              filter: 'blur(20px)',
+
+              opacity: bannerHovered ? 1 : 0,
+
+              transition: 'opacity 250ms ease',
+            }}
+          />
+
+          {/* Additional soft glow */}
+          <div
+            className="absolute top-0 right-0 w-80 h-80 bg-purple-400/15 rounded-full blur-3xl pointer-events-none"
+          />
+
+          {/* ========================================= */}
+          {/* BANNER CONTENT */}
+          {/* ========================================= */}
 
           <div className="md:col-span-7 space-y-4 text-left relative z-10">
+
             <span className="text-[10px] font-extrabold uppercase tracking-widest bg-white/15 backdrop-blur-md text-purple-200 px-3.5 py-1.5 rounded-full border border-purple-300/30 inline-flex items-center gap-1.5 shadow-sm">
               <Sparkles className="w-3.5 h-3.5" />
+
               PRACTICAL WORKFLOW EXPERIENCE
             </span>
 
@@ -261,9 +347,14 @@ export default function EngineeringPipeline({ onOpenModal }) {
               className="mt-2 py-3 px-6 rounded-2xl bg-white hover:bg-slate-100 text-[#612D92] font-black text-xs sm:text-sm shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer inline-flex items-center gap-2"
             >
               <span>Start Your Pipeline Diagnostic</span>
+
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
+
+          {/* ========================================= */}
+          {/* IMAGE */}
+          {/* ========================================= */}
 
           <div className="md:col-span-5 rounded-2xl overflow-hidden shadow-2xl border border-purple-400/30 relative group z-10">
             <img
@@ -274,7 +365,6 @@ export default function EngineeringPipeline({ onOpenModal }) {
             />
           </div>
         </motion.div>
-
       </div>
     </section>
   );

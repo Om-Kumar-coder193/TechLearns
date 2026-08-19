@@ -9,7 +9,7 @@ export default function CustomCursor() {
   const cursorY = useMotionValue(-100);
   
   // High fidelity smooth trailing spring
-  const springConfig = { damping: 28, stiffness: 350, mass: 0.5 };
+  const springConfig = { damping: 28, stiffness: 350, mass: 0 };
   const cursorXSpring = useSpring(cursorX, springConfig);
   const cursorYSpring = useSpring(cursorY, springConfig);
 
