@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useReducedMotion,
+  animate as animateValue,
+} from 'framer-motion';
 import { ShieldCheck, Users, Cpu, Bot, ChevronRight, Briefcase, Star, Rocket, Target } from 'lucide-react';
 import logo from '../assets/techlearns-logo.png';
 
 export default function InfrastructureStats() {
   const [activeSlice, setActiveSlice] = useState(0);
   const [isWheelHovered, setIsWheelHovered] = useState(false);
+  const [focusedSlice, setFocusedSlice] = useState(null);
+
+  const prefersReducedMotion = useReducedMotion();
 
   const wheelSlices = [
     {
@@ -154,12 +163,12 @@ export default function InfrastructureStats() {
     { value: '20K+', label: 'Global Students', sublabel: 'Across All Tracks', bg: 'bg-[#3B0764]' },
     { value: '120+', label: 'Countries Presence', sublabel: 'Global Network', bg: 'bg-[#581C87]' },
     { value: '40+', label: 'Franchisees & Centers', sublabel: 'PAN India', bg: 'bg-[#831843]' },
-    
+
     { value: 'No.1', label: 'AI-Powered', sublabel: 'Digital Learning Platform', bg: 'bg-[#1E293B]' },
     { value: '11+', label: 'Copyrighted Books', sublabel: 'Professional Workbooks', bg: 'bg-[#3B0764]' },
     { value: '1200+', label: 'Exam Prep Materials', sublabel: 'CPA · ACCA · CMA · IFRS', bg: 'bg-[#581C87]' },
     { value: '280+', label: 'Empanelled Instructors', sublabel: 'Senior Tech Leads', bg: 'bg-[#831843]' },
-    
+
     { value: '250+', label: 'Team Size', sublabel: 'Dedicated Mentors', bg: 'bg-[#1E293B]' },
     { value: '40+', label: 'Industry Mentors', sublabel: 'Fortune 500 Leads', bg: 'bg-[#3B0764]' },
     { value: '60+', label: 'Placement Partners', sublabel: 'Active Employers', bg: 'bg-[#581C87]' },
@@ -168,11 +177,56 @@ export default function InfrastructureStats() {
 
   const current = wheelSlices[activeSlice];
 
+  // ---- Wheel rotation "kick" animation -------------------------------
+  // Instead of physically re-orienting the wheel (which would desync the
+  // colored wedges from their labels), the wheel gets a short, springy
+  // rotational "kick" in the direction of the newly selected slice and
+  // eases back to rest. This reads as a natural spin without ever
+  // breaking the alignment between a slice's color and its label.
+  const wheelRotation = useMotionValue(0);
+  const prevSliceRef = useRef(0);
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      wheelRotation.set(0);
+      prevSliceRef.current = activeSlice;
+      return;
+    }
+
+    const prev = prevSliceRef.current;
+    let diff = activeSlice - prev;
+    // shortest angular direction around the 8-slice wheel
+    if (diff > 4) diff -= 8;
+    if (diff < -4) diff -= -8;
+    const direction = diff === 0 ? 1 : Math.sign(diff);
+
+    wheelRotation.set(direction * 9);
+    const controls = animateValue(wheelRotation, 0, {
+      type: 'spring',
+      stiffness: 170,
+      damping: 15,
+      mass: 0.9
+    });
+
+    prevSliceRef.current = activeSlice;
+    return () => controls.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSlice]);
+
+  const handleSelect = (id) => setActiveSlice(id);
+
+  const handleSliceKeyDown = (e, id) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleSelect(id);
+    }
+  };
+
   return (
     <section id="infrastructure" className="pt-12 pb-16 bg-white border-t border-slate-200 relative overflow-hidden">
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-        
+
         {/* Top Header matching exact screenshot typography */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -192,16 +246,29 @@ export default function InfrastructureStats() {
 
         {/* Interactive Circular Wheel Diagram + Dotted Connector */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center max-w-6xl mx-auto mb-16 relative">
-          
+
           {/* Left / Main SVG Wheel (LG 6 Cols) */}
           <div
             className="lg:col-span-6 relative flex items-center justify-center py-4 overflow-hidden sm:overflow-visible"
             onMouseEnter={() => setIsWheelHovered(true)}
             onMouseLeave={() => setIsWheelHovered(false)}
           >
-            
-            {/* Outer Animated Dotted Orbit Ring (Desktop & Tablet) */}
-            <div className="hidden sm:block absolute w-[340px] h-[340px] sm:w-[440px] sm:h-[440px] rounded-full border-2 border-dashed border-purple-300/70 pointer-events-none" />
+
+            {/* Ambient glow behind the wheel */}
+            <div
+              className="hidden sm:block absolute w-[380px] h-[380px] sm:w-[480px] sm:h-[480px] rounded-full pointer-events-none transition-opacity duration-500"
+              style={{
+                background: `radial-gradient(circle, ${current.color}22 0%, transparent 70%)`,
+                opacity: isWheelHovered ? 1 : 0.6
+              }}
+            />
+
+            {/* Outer Animated Dotted Orbit Ring (Desktop & Tablet) — slow ambient spin */}
+            <motion.div
+              className="hidden sm:block absolute w-[340px] h-[340px] sm:w-[440px] sm:h-[440px] rounded-full border-2 border-dashed border-purple-300/70 pointer-events-none"
+              animate={prefersReducedMotion ? {} : { rotate: 360 }}
+              transition={prefersReducedMotion ? {} : { repeat: Infinity, duration: 90, ease: 'linear' }}
+            />
 
             {/* Orbit Node Dots around outer ring matching screenshot */}
             <div className="hidden sm:block">
@@ -210,17 +277,21 @@ export default function InfrastructureStats() {
                 const angleRad = ((angleDeg - 90) * Math.PI) / 180;
                 const radius = 215;
                 const isSelected = idx === activeSlice;
+                const slice = wheelSlices[idx];
 
                 return (
                   <motion.div
                     key={idx}
-                    animate={{ scale: isSelected ? 1.3 : 1 }}
-                    className={`absolute rounded-full border-2 border-white shadow-md z-20 pointer-events-none transition-colors ${
-                      isSelected ? 'w-3.5 h-3.5 bg-black' : 'w-2.5 h-2.5 bg-[#8B5CF6]'
+                    animate={{ scale: isSelected ? 1.35 : 1 }}
+                    transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+                    className={`absolute rounded-full border-2 border-white z-20 pointer-events-none ${
+                      isSelected ? 'w-3.5 h-3.5' : 'w-2.5 h-2.5 bg-[#8B5CF6] shadow-md'
                     }`}
                     style={{
                       left: `calc(50% + ${radius * Math.cos(angleRad)}px - ${isSelected ? 7 : 5}px)`,
-                      top: `calc(50% + ${radius * Math.sin(angleRad)}px - ${isSelected ? 7 : 5}px)`
+                      top: `calc(50% + ${radius * Math.sin(angleRad)}px - ${isSelected ? 7 : 5}px)`,
+                      backgroundColor: isSelected ? slice.color : undefined,
+                      boxShadow: isSelected ? `0 0 12px 3px ${slice.color}99` : undefined
                     }}
                   />
                 );
@@ -229,7 +300,23 @@ export default function InfrastructureStats() {
 
             {/* SVG Interactive Wheel with Responsive Sizing */}
             <div className="relative w-full max-w-[300px] sm:max-w-[420px] aspect-square mx-auto z-10">
-              <svg viewBox="0 0 400 400" className="w-full h-full transform -rotate-22.5">
+              <motion.svg
+                viewBox="0 0 400 400"
+                className="w-full h-full transform -rotate-22.5"
+                // style={{ rotate: wheelRotation }}
+              >
+                <defs>
+                  {wheelSlices.map((slice) => (
+                    <filter key={slice.id} id={`glow-${slice.id}`} x="-60%" y="-60%" width="220%" height="220%">
+                      <feGaussianBlur stdDeviation="6" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  ))}
+                </defs>
+
                 {wheelSlices.map((slice, i) => {
                   const angle = 45;
                   const startAngle = i * angle;
@@ -261,6 +348,8 @@ export default function InfrastructureStats() {
                   };
 
                   const isSelected = activeSlice === slice.id;
+                  const isFocused = focusedSlice === slice.id;
+                  const isHighlighted = isSelected || isFocused;
                   const path = describeArc(200, 200, 95, 185, startAngle + 1, endAngle - 1);
                   const midAngle = startAngle + angle / 2;
 
@@ -268,45 +357,64 @@ export default function InfrastructureStats() {
                   const labelPos = polarToCartesian(200, 200, 140, midAngle);
 
                   return (
-                    <g key={slice.id}>
+                    <g
+                      key={slice.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={isSelected}
+                      aria-label={`View ${slice.title} pillar details`}
+                      className="cursor-pointer focus:outline-none"
+                      onFocus={() => setFocusedSlice(slice.id)}
+                      onBlur={() => setFocusedSlice(null)}
+                      onKeyDown={(e) => handleSliceKeyDown(e, slice.id)}
+                      onMouseEnter={() => {
+                        setActiveSlice(slice.id);
+                        setIsWheelHovered(true);
+                      }}
+                      onMouseLeave={() => setIsWheelHovered(false)}
+                      onClick={() => handleSelect(slice.id)}
+                    >
                       <motion.path
                         d={path}
                         fill={slice.color}
-                        className="cursor-pointer stroke-white stroke-[2]"
+                        stroke="white"
+                        strokeWidth={isHighlighted ? 3 : 2}
+                        className="transition-[filter] duration-300 ease-out"
                         animate={{
-                          scale: isSelected ? 1.05 : 1,
-                          opacity: isSelected ? 1 : 0.88
+                          scale: isSelected ? 1.06 : 1,
+                          opacity: isSelected ? 1 : 0.86
                         }}
                         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                         style={{
                           transformOrigin: '200px 200px',
-                          filter: isSelected ? 'drop-shadow(0px 8px 16px rgba(0,0,0,0.35))' : 'none'
+                          filter: isHighlighted
+                            ? `drop-shadow(0px 8px 14px ${slice.color}80) drop-shadow(0px 0px 10px ${slice.color}66)`
+                            : 'drop-shadow(0px 2px 4px rgba(15,29,56,0.12))'
                         }}
-                        onMouseEnter={() => {
-                          setActiveSlice(slice.id);
-                          setIsWheelHovered(true);
-                        }}
-                        onMouseLeave={() => setIsWheelHovered(false)}
-                        onClick={() => setActiveSlice(slice.id)}
                       />
 
                       {/* Icon (Top) + 2-Line Readable Label (Bottom) grouped together matching reference image */}
                       <g transform={`rotate(22.5, ${labelPos.x}, ${labelPos.y})`} className="pointer-events-none text-center">
                         {/* Icon centered above text */}
-                        <g transform={`translate(${labelPos.x}, ${labelPos.y - 18})`}>
+                        <motion.g
+                          transform={`translate(${labelPos.x}, ${labelPos.y - 18})`}
+                          animate={{ scale: isSelected ? 1.15 : 1 }}
+                          transition={{ type: 'spring', stiffness: 320, damping: 18 }}
+                          style={{ transformOrigin: `${labelPos.x}px ${labelPos.y - 18}px` }}
+                        >
                           {slice.svgIconPath}
-                        </g>
+                        </motion.g>
 
                         {/* Line 1 centered below icon */}
                         <text
                           x={labelPos.x}
                           y={slice.line2 ? labelPos.y + 4 : labelPos.y + 10}
                           fill="#FFFFFF"
-                          fontSize="8.5"
+                          fontSize={isSelected ? '9.5' : '8.5'}
                           fontWeight="800"
                           textAnchor="middle"
                           dominantBaseline="central"
-                          className="uppercase tracking-tight"
+                          className="uppercase tracking-tight transition-[font-size] duration-300"
                         >
                           {slice.line1}
                         </text>
@@ -317,11 +425,11 @@ export default function InfrastructureStats() {
                             x={labelPos.x}
                             y={labelPos.y + 16}
                             fill="#FFFFFF"
-                            fontSize="8.5"
+                            fontSize={isSelected ? '9.5' : '8.5'}
                             fontWeight="800"
                             textAnchor="middle"
                             dominantBaseline="central"
-                            className="uppercase tracking-tight"
+                            className="uppercase tracking-tight transition-[font-size] duration-300"
                           >
                             {slice.line2}
                           </text>
@@ -330,11 +438,21 @@ export default function InfrastructureStats() {
                     </g>
                   );
                 })}
-              </svg>
+              </motion.svg>
 
               {/* Center Hole Text Box */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 sm:w-52 sm:h-52 rounded-full bg-white border-4 border-purple-100 shadow-xl flex flex-col items-center justify-center p-3 sm:p-4 text-center z-20">
-                <div className="w-6 h-0.5 bg-[#8B5CF6] mb-1" />
+              <motion.div
+                animate={{
+                  boxShadow: `0 0 0 4px ${current.color}22, 0 12px 30px -8px ${current.color}55`
+                }}
+                transition={{ duration: 0.4 }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 sm:w-52 sm:h-52 rounded-full bg-white border-4 border-purple-100 flex flex-col items-center justify-center p-3 sm:p-4 text-center z-20"
+              >
+                <motion.div
+                  animate={{ backgroundColor: current.color }}
+                  transition={{ duration: 0.4 }}
+                  className="w-6 h-0.5 mb-1"
+                />
                 <span className="text-[9px] sm:text-[10px] font-extrabold text-[#8B5CF6] uppercase tracking-wider block">
                   WHY
                 </span>
@@ -347,7 +465,7 @@ export default function InfrastructureStats() {
                 <p className="text-[8px] sm:text-[9px] text-slate-500 font-semibold mt-1">
                   For Future Engineers
                 </p>
-              </div>
+              </motion.div>
             </div>
 
           </div>
@@ -400,19 +518,31 @@ export default function InfrastructureStats() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeSlice}
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.3 }}
-                className="bg-white rounded-3xl p-5 sm:p-7 border-2 border-[#8B5CF6]/30 shadow-xl relative overflow-hidden"
+                exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -15 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="bg-white rounded-3xl p-5 sm:p-7 border-2 shadow-xl relative overflow-hidden"
+                style={{
+                  borderColor: `${current.color}55`,
+                  boxShadow: `0 20px 40px -20px ${current.color}55, 0 4px 12px rgba(15,29,56,0.08)`
+                }}
               >
-                <div className="flex items-center gap-4 mb-4">
-                  <div
+                {/* subtle gradient wash in the corner for visual hierarchy */}
+                <div
+                  className="absolute -top-10 -right-10 w-40 h-40 rounded-full pointer-events-none opacity-30"
+                  style={{ background: `radial-gradient(circle, ${current.color} 0%, transparent 70%)` }}
+                />
+
+                <div className="flex items-center gap-4 mb-4 relative">
+                  <motion.div
+                    layout
                     className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-white shadow-md shrink-0"
-                    style={{ backgroundColor: current.color }}
+                    animate={{ backgroundColor: current.color }}
+                    transition={{ duration: 0.35 }}
                   >
                     {current.icon}
-                  </div>
+                  </motion.div>
                   <div>
                     <span className="text-[10px] font-black uppercase tracking-widest block mb-0.5" style={{ color: current.color }}>
                       PILLAR {current.id + 1} OF 8
@@ -423,25 +553,29 @@ export default function InfrastructureStats() {
                   </div>
                 </div>
 
-                <h4 className="text-xs sm:text-sm font-bold text-slate-800 mb-2">
+                <h4 className="text-xs sm:text-sm font-bold text-slate-800 mb-2 relative">
                   {current.subtitle}
                 </h4>
 
-                <p className="text-xs text-slate-600 leading-relaxed font-medium mb-6">
+                <p className="text-xs text-slate-600 leading-relaxed font-medium mb-6 relative">
                   {current.desc}
                 </p>
 
                 {/* Footer Dots matching screenshot */}
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs relative">
                   <span className="text-slate-500 font-medium text-[10px] sm:text-[11px]">
                     Hover slices on wheel to inspect
                   </span>
                   <div className="flex items-center gap-1.5">
                     {wheelSlices.map((s) => (
-                      <span
+                      <motion.span
                         key={s.id}
-                        className={`w-2.5 h-2.5 rounded-full transition-transform ${s.id === activeSlice ? 'scale-125' : 'opacity-40'
-                          }`}
+                        animate={{
+                          scale: s.id === activeSlice ? 1.3 : 1,
+                          opacity: s.id === activeSlice ? 1 : 0.4
+                        }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                        className="w-2.5 h-2.5 rounded-full"
                         style={{ backgroundColor: s.color }}
                       />
                     ))}
@@ -455,22 +589,29 @@ export default function InfrastructureStats() {
               {wheelSlices.map((slice) => {
                 const isSelected = slice.id === activeSlice;
                 return (
-                  <button
+                  <motion.button
                     key={slice.id}
-                    onClick={() => setActiveSlice(slice.id)}
+                    type="button"
+                    aria-current={isSelected}
+                    aria-label={`Show ${slice.title} pillar`}
+                    onClick={() => handleSelect(slice.id)}
                     onMouseEnter={() => {
                       setActiveSlice(slice.id);
                       setIsWheelHovered(true);
                     }}
                     onMouseLeave={() => setIsWheelHovered(false)}
-                    className={`py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-left border text-xs font-bold transition-all cursor-pointer flex items-center justify-between ${isSelected
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                    className={`py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-left border text-xs font-bold cursor-pointer flex items-center justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-400 transition-colors duration-200 ${
+                      isSelected
                         ? `${slice.activeBg} shadow-sm border-2`
                         : 'bg-slate-50/80 border-slate-200 text-[#0F1D38] hover:bg-purple-50/80 hover:border-purple-300'
-                      }`}
+                    }`}
                   >
                     <span className="truncate">{slice.title}</span>
-                    <ChevronRight className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#0F1D38]' : 'text-slate-400'}`} />
-                  </button>
+                    <ChevronRight className={`w-4 h-4 shrink-0 transition-transform duration-200 ${isSelected ? 'text-[#0F1D38] translate-x-0.5' : 'text-slate-400'}`} />
+                  </motion.button>
                 );
               })}
             </div>
@@ -500,7 +641,7 @@ export default function InfrastructureStats() {
                 key={idx}
                 whileHover={{ scale: 1.03, y: -4 }}
                 transition={{ duration: 0.2 }}
-                className={`${stat.bg} text-white p-5 sm:p-8 rounded-2xl shadow-lg flex flex-col items-center justify-center text-center transition-all cursor-default min-h-[130px] sm:min-h-[160px]`}
+                className={`${stat.bg} text-white p-5 sm:p-8 rounded-2xl shadow-lg hover:shadow-2xl flex flex-col items-center justify-center text-center transition-shadow duration-300 cursor-default min-h-[130px] sm:min-h-[160px]`}
               >
                 <h3 className="text-2xl sm:text-4xl font-black tracking-tight mb-1 sm:mb-2">
                   {stat.value}

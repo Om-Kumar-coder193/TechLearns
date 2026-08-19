@@ -298,10 +298,10 @@ export default function EngineeringPipeline({ onOpenModal }) {
                 radial-gradient(
                   circle,
                   rgba(255, 255, 255, 0.24) 0%,
-                  rgba(216, 180, 254, 0.18) 18%,
-                  rgba(168, 85, 247, 0.12) 35%,
-                  rgba(139, 92, 246, 0.06) 52%,
-                  transparent 72%
+                  rgba(216, 180, 254, 0.18) 30%,
+                  rgba(168, 85, 247, 0.12) 60%,
+                  rgba(139, 92, 246, 0.06) 80%,
+                  transparent 95%
                 )
               `,
 
